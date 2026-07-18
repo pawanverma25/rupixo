@@ -1,9 +1,11 @@
 package dev.pawan.rupixo.payment.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.entity.Money;
 import dev.pawan.rupixo.common.enums.PaymentMethod;
 import dev.pawan.rupixo.common.enums.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -12,8 +14,17 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-@Table(name = "payment")
-public class Payment {
+@Getter
+@Setter
+@Table(name = "payment",
+indexes = {
+        @Index(name="idx_payment_order_id", columnList="order_id"),
+        @Index(name="idx_payment_merchant_id", columnList="merchant_id")
+})
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Payment  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.UUID)

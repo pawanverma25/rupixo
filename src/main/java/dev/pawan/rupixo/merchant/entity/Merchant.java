@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.merchant.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.enums.BusinessType;
 import dev.pawan.rupixo.common.enums.MerchantStatus;
 import jakarta.persistence.*;
@@ -8,13 +9,16 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "merchant")
+@Table(name = "merchant",
+indexes = {
+        @Index(name="idx_merchant_status", columnList="status")
+})
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Merchant {
+public class Merchant  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

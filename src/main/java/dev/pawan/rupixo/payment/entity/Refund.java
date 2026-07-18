@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.payment.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.entity.Money;
 import dev.pawan.rupixo.common.enums.RefundStatus;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "refund")
-public class Refund {
+public class Refund  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

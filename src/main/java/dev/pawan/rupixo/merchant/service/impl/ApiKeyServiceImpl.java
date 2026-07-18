@@ -7,6 +7,7 @@ import dev.pawan.rupixo.merchant.dto.response.ApiKeyCreateResponse;
 import dev.pawan.rupixo.merchant.dto.response.ApiKeyResponse;
 import dev.pawan.rupixo.merchant.entity.ApiKey;
 import dev.pawan.rupixo.merchant.entity.Merchant;
+import dev.pawan.rupixo.merchant.mapper.ApiKeyMapper;
 import dev.pawan.rupixo.merchant.repository.ApiKeyRepository;
 import dev.pawan.rupixo.merchant.repository.MerchantRepository;
 import dev.pawan.rupixo.merchant.service.ApiKeyService;
@@ -26,6 +27,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final MerchantRepository merchantRepository;
     private final ApiKeyRepository apiKeyRepository;
+    private final ApiKeyMapper apiKeyMapper;
 
     @Override
     @Transactional
@@ -45,19 +47,13 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         apiKey = apiKeyRepository.save(apiKey);
 
-        return new ApiKeyCreateResponse(apiKey.getId(), keyId, rawSecret, request.environment());
+        return apiKeyMapper.toCreateResponse(apiKey);
     }
 
     @Override
     public List<ApiKeyResponse> listByMerchant(UUID merchantId) {
-        return apiKeyRepository.findByMerchant_Id(merchantId).stream().map(apiKey ->
-                new ApiKeyResponse(apiKey.getId(),
-                        apiKey.getKeyId(),
-                        apiKey.getEnvironment(),
-                        apiKey.isEnabled(),
-                        apiKey.getLastUsedAt(),
-                        null)).
-                toList();
+        List<ApiKey> apiKeyList =  apiKeyRepository.findByMerchant_Id(merchantId);
+        return apiKeyMapper.toResponseList(apiKeyList);
     }
 
     @Override
@@ -76,6 +72,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndId(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Api key", keyId));
 
+        if(!apiKey.isEnabled()) throw new RuntimeException("Cannot rotate a disabled API key.");
+
         String newRawSecret = RandomizerUtil.randomBase64(40); // TODO: encode with BcryptPasswordEncoder
 
         apiKey.setPrevoiusKeySecretHash(apiKey.getKeySecretHash());
@@ -85,7 +83,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         apiKeyRepository.save(apiKey);
 
-        return new ApiKeyCreateResponse(apiKey.getId(), apiKey.getKeyId(), apiKey.getKeySecretHash(), apiKey.getEnvironment());
+        return apiKeyMapper.toCreateResponse(apiKey);
     }
 }
 

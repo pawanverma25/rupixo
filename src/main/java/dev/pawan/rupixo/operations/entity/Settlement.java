@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.operations.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.entity.Money;
 import dev.pawan.rupixo.common.enums.SettlementStatus;
 import jakarta.persistence.*;
@@ -9,7 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "settlement")
-public class Settlement {
+public class Settlement  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

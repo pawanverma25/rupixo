@@ -1,16 +1,26 @@
 package dev.pawan.rupixo.payment.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.enums.PaymentActor;
 import dev.pawan.rupixo.common.enums.PaymentEvent;
 import dev.pawan.rupixo.common.enums.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "payment_transition_log")
-public class PaymentTransitionLog {
+@Table(name = "payment_transition_log",
+indexes = {
+        @Index(name="idx_payment_transition_log_payment_id", columnList="payment_id")
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PaymentTransitionLog  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

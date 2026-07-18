@@ -1,9 +1,13 @@
 package dev.pawan.rupixo.common.entity;
 
 import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @NoArgsConstructor
+@EqualsAndHashCode
 @Embeddable
 public class Money {
     private int amountUnits;

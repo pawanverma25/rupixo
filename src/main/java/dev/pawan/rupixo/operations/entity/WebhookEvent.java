@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.operations.entity;
 
+import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.enums.WebhookEventStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "webhook_event")
-public class WebhookEvent {
+public class WebhookEvent  extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
