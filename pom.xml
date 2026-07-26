@@ -79,6 +79,14 @@
 			<version>0.2.0</version>
 		</dependency>
 
+		<!-- PROD READY FEATURES -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>

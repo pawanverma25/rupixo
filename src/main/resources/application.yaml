@@ -12,3 +12,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+springdoc:
+  api-docs:
+    title: Rupixo API Documentation
+    description: This is the API documentation for the Rupixo application.
+    version: OPENAPI_3_1
+    path: /rupixo-api-docs
