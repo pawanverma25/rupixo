@@ -1,6 +1,7 @@
 package dev.pawan.rupixo.payment.processor.processor;
 
 import dev.pawan.rupixo.common.enums.PaymentMethod;
+import dev.pawan.rupixo.common.util.RandomizerUtil;
 import dev.pawan.rupixo.payment.processor.PaymentProcessor;
 import dev.pawan.rupixo.payment.processor.dto.PaymentProcessorRequest;
 import dev.pawan.rupixo.payment.processor.dto.PaymentProcessorResponse;
@@ -19,6 +20,22 @@ public class UPIPaymentProcessor implements PaymentProcessor {
 
     @Override
     public PaymentProcessorResponse charge(PaymentProcessorRequest request) {
-        return null;
+
+        final String VPA_CODE_FAIL = "fail@oksbi";
+
+        String vpa = request.methodDetails() != null ?
+                request.methodDetails().get("vpa").toString() : null;
+
+        if(VPA_CODE_FAIL.equals(vpa)){
+            return new PaymentProcessorResponse.Failure("UPI_REJECTED",
+                    "Bank Rejected the transaction registration");
+        }
+
+        // mock data
+        String processorRef = "UPI_PROCESSOR_" + RandomizerUtil.randomBase64(16);
+
+        String bankRef = "BANK_REF_"+processorRef;
+
+        return new PaymentProcessorResponse.Success(processorRef, bankRef);
     }
 }

@@ -16,7 +16,7 @@ public class PaymentProcessorRouter {
 
     private final Map<PaymentMethod, PaymentProcessor> paymentProcessorMap;
 
-    PaymentProcessorResponse charge(PaymentProcessorRequest paymentProcessorRequest){
+    public PaymentProcessorResponse charge(PaymentProcessorRequest paymentProcessorRequest){
         PaymentProcessor paymentProcessor = paymentProcessorMap.get(paymentProcessorRequest.paymentMethod());
         if(paymentProcessor == null){
             throw new IllegalArgumentException("No Payment processor is registered for method: " + paymentProcessorRequest.paymentMethod());
