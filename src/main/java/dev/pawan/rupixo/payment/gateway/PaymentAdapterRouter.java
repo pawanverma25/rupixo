@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -22,5 +23,13 @@ public class PaymentAdapterRouter {
             throw new IllegalArgumentException("No payment adapter registered to for method: " + request.method());
         }
         return paymentAdapter.initiate(request);
+    }
+
+    public PaymentResult capture(PaymentMethod method, UUID paymentId) {
+        PaymentAdapter paymentAdapter = paymentAdapterMap.get(method);
+        if(paymentAdapter == null){
+            throw new IllegalArgumentException("No payment adapter registered to for method: " + method);
+        }
+        return paymentAdapter.capture(paymentId);
     }
 }

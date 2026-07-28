@@ -50,4 +50,9 @@ public class NetBankingPaymentAdapter implements PaymentAdapter {
             return new PaymentResult.Failed("NET_BANKING_FAILED", e.getMessage());
         }
     }
+
+    @Override
+    public PaymentResult capture(UUID paymentId) {
+        return new PaymentResult.Success("NBK_SUCCESS");
+    }
 }
