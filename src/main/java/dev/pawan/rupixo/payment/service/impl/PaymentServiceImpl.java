@@ -9,7 +9,7 @@ import dev.pawan.rupixo.payment.dto.request.PaymentInitRequest;
 import dev.pawan.rupixo.payment.dto.response.PaymentResponse;
 import dev.pawan.rupixo.payment.entity.OrderRecord;
 import dev.pawan.rupixo.payment.entity.Payment;
-import dev.pawan.rupixo.payment.gateway.PaymentAdapterRouter;
+import dev.pawan.rupixo.payment.gateway.PaymentGatewayAdapterRouter;
 import dev.pawan.rupixo.payment.gateway.dto.PaymentRequest;
 import dev.pawan.rupixo.payment.gateway.dto.PaymentResult;
 import dev.pawan.rupixo.payment.mapper.PaymentMapper;
@@ -32,7 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
-    private final PaymentAdapterRouter paymentAdapterRouter;
+    private final PaymentGatewayAdapterRouter paymentAdapterRouter;
     private final PaymentMapper paymentMapper;
     private final PaymentTransitionLogService paymentTransitionLogService;
 

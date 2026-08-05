@@ -2,12 +2,18 @@ package dev.pawan.rupixo.vault.entity;
 
 import dev.pawan.rupixo.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "card_token")
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CardToken  extends BaseEntity {
 
     @Id

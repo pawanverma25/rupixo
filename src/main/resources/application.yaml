@@ -19,3 +19,6 @@ springdoc:
     description: This is the API documentation for the Rupixo application.
     version: OPENAPI_3_1
     path: /rupixo-api-docs
+
+vault:
+  master-key: wuiey98y398yh3dun3dh2yd7ncy23fy723yd3ny287y2d9382xyndhdsjodhf4y3881hiudsh
