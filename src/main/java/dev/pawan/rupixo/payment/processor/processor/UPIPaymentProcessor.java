@@ -34,8 +34,6 @@ public class UPIPaymentProcessor implements PaymentProcessor {
         // mock data
         String processorRef = "UPI_PROCESSOR_" + RandomizerUtil.randomBase64(16);
 
-        String bankRef = "BANK_REF_"+processorRef;
-
-        return new PaymentProcessorResponse.Success(processorRef, bankRef);
+        return new PaymentProcessorResponse.Pending(processorRef);
     }
 }

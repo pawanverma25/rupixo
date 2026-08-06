@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class NetBankingPaymentProcessor implements PaymentProcessor {
     @Override
     public PaymentMethod getPaymentMethod() {
-        return PaymentMethod.NETBANKING;
+        return PaymentMethod.NET_BANKING;
     }
 
     @Override
@@ -36,6 +36,6 @@ public class NetBankingPaymentProcessor implements PaymentProcessor {
 
         String redirectRef = "https://BANK_WEBSITE.com/net-banking/"+processorRef;
 
-        return new PaymentProcessorResponse.Success(processorRef, redirectRef);
+        return new PaymentProcessorResponse.Pending(processorRef);
     }
 }

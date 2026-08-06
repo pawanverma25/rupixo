@@ -21,4 +21,22 @@ springdoc:
     path: /rupixo-api-docs
 
 vault:
-  master-key: wuiey98y398yh3dun3dh2yd7ncy23fy723yd3ny287y2d9382xyndhdsjodhf4y3881hiudsh
+  master-key: wuiey98y398yh3dun3dh2yd7ncy23fy723yd3ny2343
+
+payment:
+  simulator:
+    poll-interval-ms: 5000
+    chaos-mode: NORMAL
+    methods:
+      CARD:
+        min-delay-seconds: 2
+        max-delay-seconds: 6
+        success-rate: 90
+      UPI:
+        min-delay-seconds: 1
+        max-delay-seconds: 3
+        success-rate: 95
+      NET_BANKING:
+        min-delay-seconds: 4
+        max-delay-seconds: 10
+        success-rate: 80

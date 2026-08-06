@@ -31,7 +31,6 @@ public class UPIPaymentAdapter implements PaymentAdapter {
 
         try{
             PaymentProcessorRequest paymentProcessorRequest = new PaymentProcessorRequest.NonCard(
-                    UUID.randomUUID(),
                     paymentRequest.paymentId(),
                     getPaymentMethod(),
                     paymentRequest.amount(),

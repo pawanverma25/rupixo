@@ -8,12 +8,10 @@ import java.util.UUID;
 
 public sealed interface PaymentProcessorRequest permits PaymentProcessorRequest.Card, PaymentProcessorRequest.NonCard {
     PaymentMethod paymentMethod();
-    UUID processingId();
     UUID paymentId();
     Money amount();
     Map<String, Object> methodDetails();
     record Card(
-            UUID processingId,
             UUID paymentId,
             PaymentMethod paymentMethod,
             Money amount,
@@ -23,7 +21,6 @@ public sealed interface PaymentProcessorRequest permits PaymentProcessorRequest.
     )  implements PaymentProcessorRequest {}
 
     record NonCard(
-            UUID processingId,
             UUID paymentId,
             PaymentMethod paymentMethod,
             Money amount,

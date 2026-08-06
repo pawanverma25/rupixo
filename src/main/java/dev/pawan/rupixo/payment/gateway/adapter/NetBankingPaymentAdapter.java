@@ -22,7 +22,7 @@ public class NetBankingPaymentAdapter implements PaymentAdapter {
 
     @Override
     public PaymentMethod getPaymentMethod() {
-        return PaymentMethod.NETBANKING;
+        return PaymentMethod.NET_BANKING;
     }
 
     @Override
@@ -31,7 +31,6 @@ public class NetBankingPaymentAdapter implements PaymentAdapter {
 
         try{
             PaymentProcessorRequest paymentProcessorRequest = new PaymentProcessorRequest.NonCard(
-                    UUID.randomUUID(),
                     paymentRequest.paymentId(),
                     getPaymentMethod(),
                     paymentRequest.amount(),

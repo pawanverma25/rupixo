@@ -2,7 +2,7 @@ package dev.pawan.rupixo.common.enums;
 
 public enum PaymentMethod {
     CARD,
-    NETBANKING,
+    NET_BANKING,
     UPI,
     WALLET,
 }
