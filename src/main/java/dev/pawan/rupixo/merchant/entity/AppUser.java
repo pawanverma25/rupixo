@@ -4,7 +4,12 @@ import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +23,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AppUser  extends BaseEntity {
+public class AppUser  extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.UUID)
@@ -39,4 +44,18 @@ public class AppUser  extends BaseEntity {
     private UserRole role;
 
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public @Nullable String getPassword() {
+        return this.passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
 }

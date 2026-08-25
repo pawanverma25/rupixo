@@ -1,6 +1,7 @@
 package dev.pawan.rupixo.payment.gateway.adapter;
 
 import dev.pawan.rupixo.common.enums.PaymentMethod;
+import dev.pawan.rupixo.common.util.RandomizerUtil;
 import dev.pawan.rupixo.payment.dto.response.PaymentResponse;
 import dev.pawan.rupixo.payment.gateway.PaymentAdapter;
 import dev.pawan.rupixo.payment.gateway.dto.PaymentRequest;
@@ -45,6 +46,6 @@ public class CardPaymentAdapter implements PaymentAdapter {
 
     @Override
     public PaymentResult capture(UUID paymentId) {
-        return null;
+        return new PaymentResult.Success("CARD_REF_" + RandomizerUtil.randomBase64(16));
     }
 }

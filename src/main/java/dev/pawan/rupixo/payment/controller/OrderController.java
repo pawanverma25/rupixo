@@ -20,7 +20,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
-    UUID merchantId = UUID.randomUUID(); //TODO: replace it after spring security impl.
+    UUID merchantId = UUID.fromString("33cc76e7-f4a6-4382-8d4f-f7c8324db5b9"); //TODO: replace it after spring security impl.
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(@RequestBody  CreateOrderRequest orderRequest){

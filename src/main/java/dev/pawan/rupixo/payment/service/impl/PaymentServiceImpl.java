@@ -56,18 +56,19 @@ public class PaymentServiceImpl implements PaymentService {
                 .amount(order.getAmount())
                 .status(PaymentStatus.CREATED)
                 .merchantId(merchantId)
+                .idempotencyKey(UUID.randomUUID().toString())
                 .method(paymentInitRequest.paymentMethod())
                 .methodDetails(paymentInitRequest.methodDetails())
                 .build();
         payment = paymentRepository.save(payment);
 
-        //
         PaymentRequest paymentRequest = paymentMapper.toPaymentRequest(payment);
+
+        paymentTransitionLogService.apply(payment, PaymentEvent.AUTHORIZE_ATTEMPT);
         PaymentResult result = paymentAdapterRouter.initiate(paymentRequest);
 
         switch (result){
             case PaymentResult.Failed failed -> {
-//                payment.setStatus(PaymentStatus.FAILED);
                 paymentTransitionLogService.apply(payment, PaymentEvent.AUTHORIZE_FAIL);
                 payment.setErrorCode(failed.errorCode());
                 payment.setErrorDescription(failed.errorDescription());
@@ -76,7 +77,8 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setProcessorReference(pending.paymentRegistrationRef());
             }
             case PaymentResult.Success success -> {
-                //TODO: success code goes here
+                paymentTransitionLogService.apply(payment, PaymentEvent.AUTHORIZE_SUCCESS);
+                payment.setBankReference(success.bankReference());
             }
         }
 
@@ -117,5 +119,46 @@ public class PaymentServiceImpl implements PaymentService {
         //TODO: send Kafka event for capture
 
         return paymentMapper.toResponse(payment);
+    }
+
+    @Override
+    @Transactional
+    public void resolveAuthorization(UUID paymentId, boolean isSuccessful, String bankRef, String errorCode, String errorMessage) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+        // Implementation for resolving authorization
+
+        if(payment.getStatus() != PaymentStatus.AUTHORIZING){
+            log.warn("Payment {} is not in AUTHORIZING state. Current state: {}", paymentId, payment.getStatus());
+            return;
+        }
+
+        OrderRecord orderRecord = payment.getOrder();
+        if(isSuccessful) {
+            payment.setBankReference(bankRef);
+            payment.setStatus(PaymentStatus.AUTHORIZED);
+
+            //Auto capture if the order is set to auto-capture
+            paymentTransitionLogService.apply(payment, PaymentEvent.CAPTURE_REQUEST);
+            PaymentResult captureResult = paymentAdapterRouter.capture(payment.getMethod(), paymentId);
+
+            if(captureResult instanceof PaymentResult.Success) {
+                paymentTransitionLogService.apply(payment, PaymentEvent.CAPTURE_SUCCESS);
+                payment.setCapturedAt(LocalDateTime.now());
+                orderRecord.setOrderStatus(OrderStatus.PAID);
+            } else if(captureResult instanceof PaymentResult.Failed(String code, String errorDescription)) {
+                paymentTransitionLogService.apply(payment, PaymentEvent.CAPTURE_FAIL);
+                payment.setErrorCode(code);
+                payment.setErrorDescription(errorDescription);
+                log.info("Payment capture failed, paymentId: {}", paymentId);
+            }
+        } else {
+            paymentTransitionLogService.apply(payment, PaymentEvent.AUTHORIZE_FAIL);
+            payment.setErrorCode(errorCode);
+            payment.setErrorDescription(errorMessage);
+        }
+
+        paymentRepository.save(payment);
+        orderRepository.save(orderRecord);
     }
 }

@@ -1,6 +1,7 @@
 package dev.pawan.rupixo.payment.config;
 
 import dev.pawan.rupixo.common.enums.ChaosMode;
+import dev.pawan.rupixo.common.enums.PaymentMethod;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,10 +12,16 @@ import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "payment.simulator")
+@Getter
+@Setter
 public class SimulatorConfig {
     private Integer pollIntervalMs = 2000;
     private ChaosMode chaosMode = ChaosMode.NORMAL;
     private Map<String, MethodSimulatorConfig> methods = new HashMap<>();
+
+    public SimulatorConfig.MethodSimulatorConfig configFor(PaymentMethod paymentMethod) {
+        return methods.get(paymentMethod.name());
+    }
 
     @Getter
     @Setter
