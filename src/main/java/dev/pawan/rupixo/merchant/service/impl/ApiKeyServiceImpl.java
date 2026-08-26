@@ -2,6 +2,7 @@ package dev.pawan.rupixo.merchant.service.impl;
 
 import dev.pawan.rupixo.common.exception.ResourceNotFoundException;
 import dev.pawan.rupixo.common.util.RandomizerUtil;
+import dev.pawan.rupixo.merchant.cache.ApiKeyCache;
 import dev.pawan.rupixo.merchant.dto.request.CreateApiKeyRequest;
 import dev.pawan.rupixo.merchant.dto.response.ApiKeyCreateResponse;
 import dev.pawan.rupixo.merchant.dto.response.ApiKeyResponse;
@@ -30,6 +31,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private final ApiKeyRepository apiKeyRepository;
     private final ApiKeyMapper apiKeyMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ApiKeyCache apiKeyCache;
 
     @Override
     @Transactional
@@ -65,7 +67,9 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .orElseThrow(() -> new ResourceNotFoundException("Api key", keyId));
 
         apiKey.setEnabled(false);
-//        apiKeyRepository.save(apiKey);
+        apiKeyRepository.save(apiKey);
+
+        apiKeyCache.evict(apiKey.getKeyId());
     }
 
     @Override
@@ -84,6 +88,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         apiKey.setGracePeriodExpiresAt(LocalDateTime.now().plusHours(24));
 
         apiKeyRepository.save(apiKey);
+
+        apiKeyCache.evict(apiKey.getKeyId());
 
         return apiKeyMapper.toCreateResponse(apiKey);
     }

@@ -5,6 +5,7 @@ import dev.pawan.rupixo.common.enums.Environment;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -35,7 +36,7 @@ public class ApiKey extends BaseEntity {
     private String keySecretHash;
 
     @Column(length = 200)
-    private String prevoiusKeySecretHash;
+    private String previousKeySecretHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
@@ -45,8 +46,14 @@ public class ApiKey extends BaseEntity {
     @Builder.Default
     private boolean enabled = true;
 
+    private LocalDateTime lastUsedAt;
+    private LocalDateTime rotatedAt;
+    private LocalDateTime gracePeriodExpiresAt;
 
-    private java.time.LocalDateTime lastUsedAt;
-    private java.time.LocalDateTime rotatedAt;
-    private java.time.LocalDateTime gracePeriodExpiresAt;
+    public boolean isInGracePeriod() {
+        return gracePeriodExpiresAt != null && LocalDateTime.now().isBefore(gracePeriodExpiresAt);
+    }
+
+    public void setPrevoiusKeySecretHash(String keySecretHash) {
+    }
 }

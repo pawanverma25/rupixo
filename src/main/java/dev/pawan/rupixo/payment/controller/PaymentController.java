@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.payment.controller;
 
+import dev.pawan.rupixo.merchant.security.MerchantContext;
 import dev.pawan.rupixo.payment.dto.request.PaymentInitRequest;
 import dev.pawan.rupixo.payment.dto.response.PaymentResponse;
 import dev.pawan.rupixo.payment.service.PaymentService;
@@ -19,18 +20,18 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
-    UUID merchantId = UUID.fromString("33cc76e7-f4a6-4382-8d4f-f7c8324db5b9"); //TODO : replace with security
+    private final MerchantContext merchantContext;
 
     @PostMapping
     public ResponseEntity<PaymentResponse> create(@RequestBody @Valid PaymentInitRequest paymentInitRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                paymentService.initiate(merchantId, paymentInitRequest));
+                paymentService.initiate(merchantContext.getMerchantId(), paymentInitRequest));
     }
 
     @PostMapping("/{paymentId}/capture")
     public ResponseEntity<PaymentResponse> capture(@PathVariable UUID paymentId){
         return ResponseEntity.ok(
-                paymentService.capture(merchantId, paymentId));
+                paymentService.capture(merchantContext.getMerchantId(), paymentId));
     }
 
 }

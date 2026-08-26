@@ -1,5 +1,7 @@
 package dev.pawan.rupixo.merchant.security;
 
+import dev.pawan.rupixo.merchant.cache.ApiKeyCache;
+import dev.pawan.rupixo.merchant.cache.ApiKeyCacheEntry;
 import dev.pawan.rupixo.merchant.entity.ApiKey;
 import dev.pawan.rupixo.merchant.repository.ApiKeyRepository;
 import jakarta.servlet.FilterChain;
@@ -33,6 +35,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final ApiKeyRepository apiKeyRepository;
     private final PasswordEncoder passwordEncoder;
     private final HandlerExceptionResolver handlerExceptionResolver;
+    private final ApiKeyCache apiKeyCache;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -54,10 +57,12 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             String keyId = credentials[0];
             String secret = credentials[1];
 
-            ApiKey apiKey = apiKeyRepository.findById(UUID.fromString(keyId))
-                    .orElseThrow(() -> new BadRequestException("Invalid API key."));
+            ApiKeyCacheEntry apiKeyCacheEntry = apiKeyCache.get(keyId).orElseGet(() -> loadAndCacheApiKey(keyId));
 
-            if(!apiKey.isEnabled() || !secretMatches(apiKey, secret)) {
+//            ApiKey apiKey = apiKeyRepository.findById(UUID.fromString(keyId))
+//                    .orElseThrow(() -> new BadRequestException("Invalid API key."));
+
+            if(apiKeyCacheEntry == null || !apiKeyCacheEntry.enabled() || !secretMatches(apiKeyCacheEntry, secret)) {
                 throw new BadRequestException("API key is invalid or missing.");
             }
 
@@ -66,7 +71,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_API_KEY_USER")));
 
             SecurityContextHolder.getContext().setAuthentication(auth);
-            merchantContext.setMerchantId(apiKey.getMerchant().getId());
+            merchantContext.setMerchantId(apiKeyCacheEntry.merchantId());
             merchantContext.setKeyId(keyId);
 
             filterChain.doFilter(request, response);
@@ -75,15 +80,33 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private boolean secretMatches(ApiKey apiKey, String rawSecret) {
-        if(passwordEncoder.matches(rawSecret, apiKey.getKeySecretHash())){
+    private ApiKeyCacheEntry loadAndCacheApiKey(String keyId) {
+        ApiKey apiKey = apiKeyRepository.findByKeyId(keyId).orElse(null);
+
+        if(apiKey == null) return null;
+        ApiKeyCacheEntry cacheEntry = new ApiKeyCacheEntry(
+                apiKey.getId(),
+                apiKey.getMerchant().getId(),
+                apiKey.getKeyId(),
+                apiKey.getKeySecretHash(),
+                apiKey.getPreviousKeySecretHash(),
+                apiKey.getEnvironment(),
+                apiKey.isEnabled(),
+                apiKey.getGracePeriodExpiresAt()
+        );
+
+        apiKeyCache.put(keyId, cacheEntry);
+        return cacheEntry;
+    }
+
+    private boolean secretMatches(ApiKeyCacheEntry apiKeyCacheEntry, String rawSecret) {
+        if(passwordEncoder.matches(rawSecret, apiKeyCacheEntry.keySecretHash())){
             return false;
         }
 
-        boolean isInGracePeriod = apiKey.getGracePeriodExpiresAt() != null && LocalDateTime.now().isAfter(apiKey.getGracePeriodExpiresAt());
-        return isInGracePeriod
-                && apiKey.getPrevoiusKeySecretHash() != null
-                && passwordEncoder.matches(rawSecret, apiKey.getPrevoiusKeySecretHash());
+        return apiKeyCacheEntry.isInGracePeriod()
+                && apiKeyCacheEntry.previousKeySecretHash() != null
+                && passwordEncoder.matches(rawSecret, apiKeyCacheEntry.previousKeySecretHash());
     }
 
     private String[] decodeApiKeyAndSecret(String apiKey) {

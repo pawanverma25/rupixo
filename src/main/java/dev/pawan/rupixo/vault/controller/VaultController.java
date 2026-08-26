@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.vault.controller;
 
+import dev.pawan.rupixo.merchant.security.MerchantContext;
 import dev.pawan.rupixo.vault.dto.request.TokenizeRequest;
 import dev.pawan.rupixo.vault.dto.response.TokenizeResponse;
 import dev.pawan.rupixo.vault.service.VaultService;
@@ -22,10 +23,10 @@ import java.util.UUID;
 public class VaultController {
 
     private final VaultService vaultService;
-    UUID merchantId = UUID.fromString("23c2c6d6-b97b-4b57-b5de-b839427e0386"); //TODO: update this with Merchant Context
+    private final MerchantContext merchantContext;
 
     @PostMapping("/tokenize")
     public ResponseEntity<TokenizeResponse> tokenize(@RequestBody @Valid TokenizeRequest tokenizeRequest){
-        return ResponseEntity.status(HttpStatus.CREATED).body(vaultService.tokenize(merchantId, tokenizeRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(vaultService.tokenize(merchantContext.getMerchantId(), tokenizeRequest));
     }
 }

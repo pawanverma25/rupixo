@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.payment.controller;
 
+import dev.pawan.rupixo.merchant.security.MerchantContext;
 import dev.pawan.rupixo.payment.dto.request.CreateOrderRequest;
 import dev.pawan.rupixo.payment.dto.response.OrderResponse;
 import dev.pawan.rupixo.payment.service.OrderService;
@@ -19,12 +20,12 @@ import java.util.UUID;
 @Slf4j
 public class OrderController {
 
+    private final MerchantContext merchantContext;
     private final OrderService orderService;
-    UUID merchantId = UUID.fromString("33cc76e7-f4a6-4382-8d4f-f7c8324db5b9"); //TODO: replace it after spring security impl.
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(@RequestBody  CreateOrderRequest orderRequest){
-        return ResponseEntity.ok(orderService.create(merchantId, orderRequest));
+        return ResponseEntity.ok(orderService.create(merchantContext.getMerchantId(), orderRequest));
     }
 
 
