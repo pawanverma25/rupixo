@@ -54,6 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 merchantContext.setMerchantId(jwtUtil.extractMerchantId(claims));
+
+                doFilter(request, response, filterChain);
             }
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, response, null, e);

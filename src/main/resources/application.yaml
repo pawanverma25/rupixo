@@ -48,3 +48,11 @@ payment:
 jwt:
   secret-key: ${JWT_SECRET:dont-use-this-secret-in-production-ncw3e80hc389013hehurdhw09}
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
+
+app:
+  rate-limiter:
+    strategy: fixed-window
+    use-case:
+      api-key:
+        limit: 2
+        window-seconds: 60

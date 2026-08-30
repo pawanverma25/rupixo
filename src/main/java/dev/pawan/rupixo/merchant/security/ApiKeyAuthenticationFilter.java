@@ -1,5 +1,8 @@
 package dev.pawan.rupixo.merchant.security;
 
+import dev.pawan.rupixo.common.exception.RateLimitExceededException;
+import dev.pawan.rupixo.common.ratelimit.RateLimitResult;
+import dev.pawan.rupixo.common.ratelimit.RateLimiter;
 import dev.pawan.rupixo.merchant.cache.ApiKeyCache;
 import dev.pawan.rupixo.merchant.cache.ApiKeyCacheEntry;
 import dev.pawan.rupixo.merchant.entity.ApiKey;
@@ -11,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +40,13 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final PasswordEncoder passwordEncoder;
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final ApiKeyCache apiKeyCache;
+    private final RateLimiter rateLimiter;
+
+    @Value("${app.rate-limiter.use-case.api-key.limit}")
+    private Long maxRequestsAllowed;
+
+    @Value("${app.rate-limiter.use-case.api-key.window-seconds}")
+    private Long timeWindowSeconds;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -62,9 +73,18 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 //            ApiKey apiKey = apiKeyRepository.findById(UUID.fromString(keyId))
 //                    .orElseThrow(() -> new BadRequestException("Invalid API key."));
 
-            if(apiKeyCacheEntry == null || !apiKeyCacheEntry.enabled() || !secretMatches(apiKeyCacheEntry, secret)) {
+            if(apiKeyCacheEntry == null || !apiKeyCacheEntry.enabled() ||
+                    !secretMatches(apiKeyCacheEntry, secret)) {
                 throw new BadRequestException("API key is invalid or missing.");
             }
+
+            RateLimitResult rateLimitResult = rateLimiter.checkRateLimit(keyId, maxRequestsAllowed, timeWindowSeconds);
+            if(!rateLimitResult.isAllowed()){
+                throw new RateLimitExceededException(rateLimitResult.resetTimeMillis(), "Rate limit exceeded.");
+            }
+
+            response.addHeader("X-RateLimit-Limit", String.valueOf(maxRequestsAllowed));
+            response.addHeader("X-RateLimit-Remaining", String.valueOf(rateLimitResult.remainingRequests()));
 
             var auth = new UsernamePasswordAuthenticationToken(keyId,
                     null,
@@ -101,7 +121,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean secretMatches(ApiKeyCacheEntry apiKeyCacheEntry, String rawSecret) {
         if(passwordEncoder.matches(rawSecret, apiKeyCacheEntry.keySecretHash())){
-            return false;
+            return true;
         }
 
         return apiKeyCacheEntry.isInGracePeriod()
