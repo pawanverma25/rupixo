@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.payment.service.impl;
 
+import dev.pawan.rupixo.common.enums.EventAggregateType;
 import dev.pawan.rupixo.common.enums.OrderStatus;
 import dev.pawan.rupixo.common.exception.BusinessRuleViolationException;
 import dev.pawan.rupixo.common.exception.DuplicateResourceException;
@@ -12,6 +13,7 @@ import dev.pawan.rupixo.payment.entity.OrderRecord;
 import dev.pawan.rupixo.payment.entity.Payment;
 import dev.pawan.rupixo.payment.mapper.OrderMapper;
 import dev.pawan.rupixo.payment.mapper.PaymentMapper;
+import dev.pawan.rupixo.payment.outbox.OutboxEventPublisher;
 import dev.pawan.rupixo.payment.repository.OrderRepository;
 import dev.pawan.rupixo.payment.repository.PaymentRepository;
 import dev.pawan.rupixo.payment.service.OrderService;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     private final CustomerService customerService;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     @Value("${payment.order.defaulr-order-expiry-minutes: 30}")
     private Integer defaultOrderExpiryMinutes;
@@ -71,7 +75,14 @@ public class OrderServiceImpl implements OrderService {
 
         order = orderRepository.save(order);
 
-        //TODO: publish kafka order event here
+        //publish kafka order event here
+        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CREATED",
+                Map.of( "orderId", order.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "orderStatus", order.getOrderStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency()
+                ));
 
         return orderMapper.toResponse(order);
     }
@@ -95,6 +106,15 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderStatus(OrderStatus.CANCELLED);
         order = orderRepository.save(order);
+
+        //outbox event for order canceled
+        outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CANCELLED",
+                Map.of( "orderId", order.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "orderStatus", order.getOrderStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency()
+                ));
 
         return  orderMapper.toResponse(order);
     }

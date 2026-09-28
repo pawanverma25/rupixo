@@ -1,5 +1,6 @@
 package dev.pawan.rupixo.payment.service.impl;
 
+import dev.pawan.rupixo.common.enums.EventAggregateType;
 import dev.pawan.rupixo.common.enums.OrderStatus;
 import dev.pawan.rupixo.common.enums.PaymentEvent;
 import dev.pawan.rupixo.common.enums.PaymentStatus;
@@ -13,6 +14,7 @@ import dev.pawan.rupixo.payment.gateway.PaymentGatewayAdapterRouter;
 import dev.pawan.rupixo.payment.gateway.dto.PaymentRequest;
 import dev.pawan.rupixo.payment.gateway.dto.PaymentResult;
 import dev.pawan.rupixo.payment.mapper.PaymentMapper;
+import dev.pawan.rupixo.payment.outbox.OutboxEventPublisher;
 import dev.pawan.rupixo.payment.repository.OrderRepository;
 import dev.pawan.rupixo.payment.repository.PaymentRepository;
 import dev.pawan.rupixo.payment.service.PaymentService;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -35,6 +38,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentGatewayAdapterRouter paymentAdapterRouter;
     private final PaymentMapper paymentMapper;
     private final PaymentTransitionLogService paymentTransitionLogService;
+
+    private final OutboxEventPublisher outboxEventPublisher;
 
     @Override
     @Transactional
@@ -86,8 +91,19 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         payment = paymentRepository.save(payment);
+        order = orderRepository.save(order);
 
-        //TODO: send Kafka event for initiation
+        //end Kafka event for initiation
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_INITIATED",
+                Map.of(
+                        "orderId", order.getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", merchantId.toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", payment.getAmount().getAmountUnits(),
+                        "amountCurrency", payment.getAmount().getCurrency(),
+                        "paymentMethod", payment.getMethod().name()
+                ));
 
         return paymentMapper.toResponse(payment);
     }
@@ -122,7 +138,17 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment = paymentRepository.save(payment);
 
-        //TODO: send Kafka event for capture
+        // send Kafka event for capture
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_STATUS_UPDATED",
+                Map.of(
+                        "orderId", payment.getOrder().getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", payment.getOrder().getMerchantId().toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", payment.getAmount().getAmountUnits(),
+                        "amountCurrency", payment.getAmount().getCurrency(),
+                        "paymentMethod", payment.getMethod().name()
+                ));
 
         return paymentMapper.toResponse(payment);
     }
@@ -169,5 +195,16 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRepository.save(payment);
         orderRepository.save(orderRecord);
+
+        outboxEventPublisher.publish(EventAggregateType.PAYMENT, payment.getId(), "PAYMENT_STATUS_UPDATED",
+                Map.of(
+                        "orderId", payment.getOrder().getId().toString(),
+                        "paymentId", payment.getId().toString(),
+                        "merchantId", payment.getOrder().getMerchantId().toString(),
+                        "paymentStatus", payment.getStatus().name(),
+                        "amountUnits", payment.getAmount().getAmountUnits(),
+                        "amountCurrency", payment.getAmount().getCurrency(),
+                        "paymentMethod", payment.getMethod().name()
+                ));
     }
 }
