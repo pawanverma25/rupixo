@@ -39,7 +39,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse initiate(UUID merchantId, PaymentInitRequest paymentInitRequest) {
-        OrderRecord order = orderRepository.findByIdAndMerchantId(paymentInitRequest.orderId(), merchantId)
+//        OrderRecord order = orderRepository.findByIdAndMerchantId(paymentInitRequest.orderId(), merchantId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Order", paymentInitRequest.orderId()));
+
+        OrderRecord order = orderRepository.findByIdAndMerchantIdForUpdate(paymentInitRequest.orderId(), merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", paymentInitRequest.orderId()));
 
         if(order.getOrderStatus() == OrderStatus.PAID || order.getOrderStatus() == OrderStatus.CANCELLED){
@@ -92,7 +95,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse capture(UUID merchantId, UUID paymentId) {
-        Payment payment = paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
+//        Payment payment = paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+        Payment payment = paymentRepository.findByIdAndMerchantIdForUpdate(paymentId, merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
         paymentTransitionLogService.apply(payment, PaymentEvent.CAPTURE_REQUEST);
@@ -124,8 +130,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void resolveAuthorization(UUID paymentId, boolean isSuccessful, String bankRef, String errorCode, String errorMessage) {
-        Payment payment = paymentRepository.findById(paymentId)
+//        Payment payment = paymentRepository.findById(paymentId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+        Payment payment = paymentRepository.findByIdForUpdate(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
         // Implementation for resolving authorization
 
         if(payment.getStatus() != PaymentStatus.AUTHORIZING){

@@ -80,7 +80,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Override
     @Transactional
     public ApiKeyCreateResponse rotate(UUID merchantId, UUID keyId) {
-        ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndId(merchantId, keyId)
+//        ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndId(merchantId, keyId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Api key", keyId));
+
+        ApiKey apiKey = apiKeyRepository.findByMerchant_IdAndIdForUpdate(merchantId, keyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Api key", keyId));
 
         if(!apiKey.isEnabled()) throw new RuntimeException("Cannot rotate a disabled API key.");

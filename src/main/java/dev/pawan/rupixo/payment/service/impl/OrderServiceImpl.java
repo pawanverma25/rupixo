@@ -4,6 +4,7 @@ import dev.pawan.rupixo.common.enums.OrderStatus;
 import dev.pawan.rupixo.common.exception.BusinessRuleViolationException;
 import dev.pawan.rupixo.common.exception.DuplicateResourceException;
 import dev.pawan.rupixo.common.exception.ResourceNotFoundException;
+import dev.pawan.rupixo.merchant.service.CustomerService;
 import dev.pawan.rupixo.payment.dto.request.CreateOrderRequest;
 import dev.pawan.rupixo.payment.dto.response.OrderResponse;
 import dev.pawan.rupixo.payment.dto.response.PaymentResponse;
@@ -35,6 +36,8 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentMapper paymentMapper;
     private final OrderMapper orderMapper;
 
+    private final CustomerService customerService;
+
     @Value("${payment.order.defaulr-order-expiry-minutes: 30}")
     private Integer defaultOrderExpiryMinutes;
 
@@ -45,12 +48,22 @@ public class OrderServiceImpl implements OrderService {
             throw new DuplicateResourceException("ORDER_RECEIPT_DUPLICATE", "Order with receipt already exists: " + orderRequest.receipt());
         }
 
+        UUID customerId = null;
+        if(orderRequest.customerDetails() != null) {
+            customerId = customerService.findOrCreateCustomer(
+                    merchantId,
+                    orderRequest.customerDetails().name(),
+                    orderRequest.customerDetails().email(),
+                    orderRequest.customerDetails().phone()
+            );
+        }
+
         OrderRecord order = OrderRecord.builder()
                 .receipt(orderRequest.receipt())
                 .amount(orderRequest. amount())
                 .notes(orderRequest.notes())
-
                 .merchantId(merchantId)
+                .customerId(customerId)
                 .orderStatus(OrderStatus.CREATED)
                 .expiresAt(orderRequest.expiresAt() != null ? orderRequest.expiresAt() :
                         LocalDateTime.now().plusMinutes(defaultOrderExpiryMinutes))

@@ -26,7 +26,6 @@ public record TokenizeRequest(
         @NotNull(message = "Expiry year is required.")
         Integer expiryYear,
 
-        @NotNull(message = "Customer Id is required.")
         UUID customerId,
 
         String cardHolderName
