@@ -1,9 +1,6 @@
 package dev.pawan.rupixo.vault.dto.request;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.LuhnCheck;
 
 import java.util.UUID;
@@ -28,6 +25,7 @@ public record TokenizeRequest(
 
         UUID customerId,
 
+        @Size(min = 3, message = "Card Holder Name should have at least 3 characters")
         String cardHolderName
 ) {
 }

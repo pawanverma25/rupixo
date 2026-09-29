@@ -7,6 +7,7 @@ import dev.pawan.rupixo.payment.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class OutboxPoller {
     private final OutboxEventHandler outboxEventHandler;
 
     //TODO: schedule this method to run periodically using @Scheduled annotation
+//    @Scheduled(fixedDelayString = "${app.kafka.outbox.poll-interval-ms:5000}")
     public void poll(){
         List<OutboxEvent> events = outboxEventRepository.findByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
 

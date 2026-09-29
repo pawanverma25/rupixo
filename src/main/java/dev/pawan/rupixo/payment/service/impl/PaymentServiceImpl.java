@@ -170,8 +170,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         OrderRecord orderRecord = payment.getOrder();
         if(isSuccessful) {
+            paymentTransitionLogService.apply(payment, PaymentEvent.AUTHORIZE_SUCCESS);
             payment.setBankReference(bankRef);
-            payment.setStatus(PaymentStatus.AUTHORIZED);
+            payment.setAuthorizedAt(LocalDateTime.now());
 
             //Auto capture if the order is set to auto-capture
             paymentTransitionLogService.apply(payment, PaymentEvent.CAPTURE_REQUEST);
