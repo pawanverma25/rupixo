@@ -1,0 +1,15 @@
+package dev.pawan.rupixo.operations.repository;
+
+import dev.pawan.rupixo.common.enums.WebhookEventStatus;
+import dev.pawan.rupixo.operations.entity.WebhookEvent;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface WebhookEventRepository extends JpaRepository<WebhookEvent, UUID> {
+    List<WebhookEvent> findByStatusAndNextRetryAtBefore(WebhookEventStatus webhookEventStatus, LocalDateTime now);
+}

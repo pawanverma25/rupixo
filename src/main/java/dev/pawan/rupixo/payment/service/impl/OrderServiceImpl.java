@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
 
         order = orderRepository.save(order);
 
-        //publish kafka order event here
+        //publish webhook order event here
         outboxEventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CREATED",
                 Map.of( "orderId", order.getId().toString(),
                         "merchantId", merchantId.toString(),

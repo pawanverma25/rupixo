@@ -29,8 +29,9 @@ public class MerchantWebhookConfig  extends BaseEntity {
     @Column(nullable = false, length = 500)
     private String targetUrl; //www.zara.com/webhook/success
 
+    // encrypted not hashed
     @Column(length = 255)
-    private String webhookSecretHash;
+    private String webhookSecret;
 
     @Column(nullable = false)
     private Boolean enabled = true;
@@ -38,4 +39,17 @@ public class MerchantWebhookConfig  extends BaseEntity {
     @Column(length = 255)
     private String eventTypes;
     // Comma-separated list of event types to subscribe to
+
+    public boolean isSubscribedToEventType(@NonNull String eventType){
+        if(eventTypes == null || eventTypes.isBlank()){
+            return true;
+        }
+        for(String configEvenType : eventTypes.split(",")){
+            String trimmed = configEvenType.trim();
+            if("ALL".equalsIgnoreCase(trimmed) || eventType.equalsIgnoreCase(trimmed)){
+                return true;
+            }
+        }
+        return false;
+    }
 }

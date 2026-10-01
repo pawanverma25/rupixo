@@ -26,7 +26,7 @@ public class OutboxPoller {
     private final OutboxEventHandler outboxEventHandler;
 
     //TODO: schedule this method to run periodically using @Scheduled annotation
-//    @Scheduled(fixedDelayString = "${app.kafka.outbox.poll-interval-ms:5000}")
+//    @Scheduled(fixedDelayString = "${app.webhook.outbox.poll-interval-ms:5000}")
     public void poll(){
         List<OutboxEvent> events = outboxEventRepository.findByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
 

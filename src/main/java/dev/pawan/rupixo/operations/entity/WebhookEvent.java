@@ -3,6 +3,7 @@ package dev.pawan.rupixo.operations.entity;
 import dev.pawan.rupixo.common.entity.BaseEntity;
 import dev.pawan.rupixo.common.enums.WebhookEventStatus;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -11,6 +12,11 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "webhook_event")
 public class WebhookEvent  extends BaseEntity {
 
@@ -39,9 +45,11 @@ public class WebhookEvent  extends BaseEntity {
     private WebhookEventStatus status;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer attempts = 0;
 
-    private LocalDateTime nextRetryAt;
+    @Builder.Default
+    private LocalDateTime nextRetryAt = null;
 
     private LocalDateTime lastAttemptAt;
 
