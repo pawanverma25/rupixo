@@ -39,6 +39,10 @@ spring:
         spring.json.use.type.headers: false
         spring.json.value.default.type: java.util.LinkedHashMap
 
+threads:
+  virtual:
+    enabled: true
+
 springdoc:
   api-docs:
     title: Rupixo API Documentation
@@ -90,3 +94,7 @@ app:
       poll-batch-size: 100
       poll-interval-ms: 1000
       reconcile-interval-ms: 60000
+      client:
+        signature-header: X-Rupixo-Signature
+        read-timeout-ms: 5000
+        connect-timeout-ms: 5000

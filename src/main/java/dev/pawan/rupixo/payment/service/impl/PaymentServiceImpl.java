@@ -208,4 +208,6 @@ public class PaymentServiceImpl implements PaymentService {
                         "paymentMethod", payment.getMethod().name()
                 ));
     }
+
+    //TODO: add timeout feature. sweeper scheduler will mark the order as expired if no callback is received within a certain time frame
 }

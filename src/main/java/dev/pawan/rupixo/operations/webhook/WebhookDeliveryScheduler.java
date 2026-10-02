@@ -5,6 +5,7 @@ import dev.pawan.rupixo.operations.entity.WebhookEvent;
 import dev.pawan.rupixo.operations.repository.WebhookEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 @Component
 @Slf4j
@@ -21,9 +23,12 @@ public class WebhookDeliveryScheduler {
 
     private final WebhookRetryQueue webhookRetryQueue;
     private final WebhookEventRepository webhookEventRepository;
+    private final ExecutorService virtualThreadExecutorService;
+    private final WebhookDeliveryExecutor webhookDeliveryExecutor;
 
     @Value("${app.webhook.delivery.poll-batch-size:100}")
     private int batchSize = 100;
+
 
     @Scheduled(fixedDelayString = "${app.webhook.delivery.poll-interval-ms:1000}")
     public void pollAndDeliver() {
@@ -34,7 +39,9 @@ public class WebhookDeliveryScheduler {
         }
 
         for(UUID due : dues) {
-           // TODO: executor service to deliver the webhook event asynchronously
+            virtualThreadExecutorService.submit(() -> {
+               webhookDeliveryExecutor.deliverWebhook(due);
+           });
         }
     }
 
