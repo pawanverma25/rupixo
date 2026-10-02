@@ -25,7 +25,7 @@ public class BankCallbackSimulator {
     private final SimulatorConfig simulatorConfig;
 
     //TODO: schedule this method on prod
-//    @Scheduled(fixedDelayString = "${payment.simulator.poll-interval-ms:5000}")
+    @Scheduled(fixedDelayString = "${payment.simulator.poll-interval-ms:5000}")
     public void processCallBacks(){
         LocalDateTime globalWindow = LocalDateTime.now().minusSeconds(1);
         List<Payment> candidates = paymentRepository

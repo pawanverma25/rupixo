@@ -18,11 +18,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
+    listener:
+      ack-mode: manual
     bootstrap-servers: ${KAFKA_BROKERS:localhost:29092}
     producer:
       acks: all
-      key-serializer: org.apache.webhook.common.serialization.StringSerializer
-      value-serializer: org.springframework.webhook.support.serializer.JsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
@@ -32,8 +34,8 @@ spring:
       group-id: rupixo-monolith
       auto-offset-reset: earliest
       enable-auto-commit: false
-      key-deserializer: org.apache.webhook.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.webhook.support.serializer.JsonDeserializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "dev.pawan.rupixo.*"
         spring.json.use.type.headers: false
@@ -79,7 +81,7 @@ app:
     strategy: fixed-window
     use-case:
       api-key:
-        limit: 2
+        limit: 200
         window-seconds: 60
   kafka:
     topics:

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,8 +27,8 @@ public class MerchantWebhookApiImpl implements MerchantWebhookApi {
         return webhookConfigRepository.findByMerchant_IdAndEnabledTrue(merchantId).stream()
                 .filter(config -> config.isSubscribedToEventType(eventType))
                 .map(config -> {
-                    String encryptedSecret = config.getWebhookSecret();
-                    byte[] decryptedSecretBytes = masterKeyEncryptor.decrypt(encryptedSecret.getBytes());
+                    byte[] encryptedSecretBytes = Base64.getDecoder().decode(config.getWebhookSecret());
+                    byte[] decryptedSecretBytes = masterKeyEncryptor.decrypt(encryptedSecretBytes);
                     return new WebhookTarget(config.getId(), config.getTargetUrl(),
                             new String(decryptedSecretBytes, StandardCharsets.UTF_8));
                 })

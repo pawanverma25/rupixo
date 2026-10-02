@@ -26,9 +26,10 @@ public class WebhookDeliveryExecutor {
     private final WebhookEventRepository webhookEventRepository;
     private  final WebhookRetryQueue webhookRetryQueue;
     private final RestClient restClient;
+    private final DlqEventRecorder dlqEventRecorder;
 
     @Value("${app.webhook.delivery.client.signature-header:X-Rupixo-Signature}")
-    private final String REST_CLIENT_SIGNATURE_HEADER;
+    private String REST_CLIENT_SIGNATURE_HEADER;
 
     private final List<Duration> BACKOFF = List.of(
             Duration.ofMinutes(1),
@@ -90,7 +91,7 @@ public class WebhookDeliveryExecutor {
             event.setStatus(WebhookEventStatus.DEAD);
             log.warn("Max retries reached for webhook event with ID {}. Marking as dead.", event.getId());
 
-            //TODO: Add event to to DLQ
+            dlqEventRecorder.recordWebhookEventAfterExhaustion(event, error);
 
             return;
         }

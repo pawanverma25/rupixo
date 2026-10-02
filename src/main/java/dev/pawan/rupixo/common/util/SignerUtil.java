@@ -1,10 +1,13 @@
 package dev.pawan.rupixo.common.util;
 
+import org.springframework.stereotype.Component;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 
+@Component
 public class SignerUtil {
 
     public static final String ALGO = "HmacSHA256";

@@ -2,6 +2,9 @@ package dev.pawan.rupixo.operations.entity;
 
 import dev.pawan.rupixo.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -11,6 +14,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "dlq_event")
+@Getter
+@Setter
+@Builder
 public class DlqEvent  extends BaseEntity {
 
     @Id

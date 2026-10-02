@@ -9,9 +9,11 @@ import dev.pawan.rupixo.operations.repository.WebhookEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
@@ -29,17 +31,18 @@ public class WebhookKafkaConsumer {
     private final WebhookEventRepository webhookEventRepository;
     private final SignerUtil signerUtil;
     private final WebhookRetryQueue webhookRetryQueue;
+    private final DlqEventRecorder dlqEventRecorder;
 
     @KafkaListener(topics = {
-            "${app.kafka.topics.payments:payments.events}",
-            "${app.kafka.topics.orders:orders.events}",
-            "${app.kafka.topics.refunds:refunds.events}",
-            "${app.kafka.topics.settlements:settlements.events}"
+            "${app.kafka.topics.payments:payment.events}",
+            "${app.kafka.topics.orders:order.events}",
+            "${app.kafka.topics.refunds:refund.events}",
+            "${app.kafka.topics.settlements:settlement.events}"
     })
     public void onWebhookEvent(ConsumerRecord<String, Map<String, Object>> consumerRecord, Acknowledgment ack) {
         try {
             Map<String, Object> envelope = consumerRecord.value();
-            Map<String, Object> data = (Map<String, Object>) envelope.get("data");
+            Map<String, Object> data = (Map<String, Object>) envelope.get("payload");
             String eventType = (String) envelope.get("eventType");
             Object merchantIdObj = data.get("merchantId");
 
@@ -83,9 +86,13 @@ public class WebhookKafkaConsumer {
             }
 
             ack.acknowledge();
-        } catch (Exception e) {
-            log.error("Error processing webhook event on offset={}", consumerRecord.offset(), e);
-            //TODO: Decide whether to ack or not. If we don't ack, the message will be retried, which may lead to duplicate webhook events.
+        } catch (DataAccessException | CannotCreateTransactionException dbDown) {
+            log.error("DB Related Error processing webhook event on offset={}", consumerRecord.offset(), dbDown);
+        } catch (Exception logicalError) {
+            log.error("Error processing webhook event on offset={}", consumerRecord.offset(), logicalError);
+
+            dlqEventRecorder.recordAfterConsumerFailure(consumerRecord, logicalError.getMessage());
+            ack.acknowledge();
         }
     }
 }

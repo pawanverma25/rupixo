@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.webhook")
+@ConfigurationProperties(prefix = "app.kafka")
 @Getter
 @Setter
 public class
